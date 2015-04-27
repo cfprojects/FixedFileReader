@@ -1,0 +1,86 @@
+<!-- Defition for Reading EDI X.12 PO 
+     this is a skelleton defintion. Currently field names are using automatic defintions and default
+	 to text.
+	 All the fields shold be further defined and typed.
+-->
+<boncodeFixedFileDefintion EndOfLine="CRLF">
+	<global name="segmentDel" value="~"/>
+
+	<!-- the first line of EDI X.12 document is the ISA, this is fixed width and delimited, so we can use either method to parse it -->
+	<header name="Interchange Control Header" repeat="no" IgnoreLastRecordData="no" restartAtLastRecord="no"  
+		childExpression = "Function:Left(?,3)" endExpression="Function:Left(?,1) NEQ ''"> <!-- end of a segment (group of multiple records) can be denoted via count (e.g. count:13 or via a Function -->
+		<!-- match elements for case can be any alpha numeric combo but cannot contain comma -->
+		<match case="ISA"  name="ISA Line" segmentDel="~"> <!-- we are using a delimiter, though for this line we could have used fixed widht -->
+			<field order="1" name="ISA00"/>
+			<field order="2" name="ISA01_AuthorizationQualifier"/>
+			<field order="3" name="ISA02_Authorization"/>
+			<field order="4" name="ISA03_SecurityQualifier "/>
+			<field order="5" name="ISA04_Security"/>
+			<field order="6" name="ISA05_SenderQualifier"/>
+			<field order="7" name="ISA06_SenderIdentifier"/>
+			<field order="8" name="ISA07"/>
+			<field order="9" name="ISA08"/>
+			<field order="10" name="ISA09"/>
+			<field order="11" name="ISA10"/>
+			<field order="12" name="ISA11"/>
+			<!-- there are more fields in this segment but we will only define first few as example -->
+		</match>	
+			
+	</header>
+	<header name="functional group header" repeat="no"  IgnoreLastRecordData="no" restartAtLastRecord="no"  
+		childExpression = "Function:Left(?,2)" endExpression="Function:Left(?,1) NEQ ''">
+		
+		<match case="GS"  name="GS Line" segmentDel="~">
+			<!-- define no fields. the parser will automatically assign numeric field names -->
+		</match>
+	</header>
+	<header name="transaction header" repeat="no"  IgnoreLastRecordData="no" restartAtLastRecord="no"  
+		childExpression = "Function:ListFirst(?,'~')" endExpression="Function:Left(?,3) IS 'CTT'">
+		
+		<match case="ST"  name="ST Line" segmentDel="~"></match>
+		<match case="BEG"  name="BEG Line" segmentDel="~"></match>
+		<match case="PER"  name="PER Line" segmentDel="~"></match>	
+		<match case="FOB"  name="FOB Line" segmentDel="~"></match>
+		<match case="CSH"  name="CSH Line" segmentDel="~"></match>
+		<match case="ITD"  name="ITD Line" segmentDel="~"></match>
+		<match case="N1"  name="Billing Address Group" segmentDel="~">
+			<!-- this is an address so the remainder is nested within -->
+			<header name="bill to address group header" repeat="No"  IgnoreLastRecordData="no" restartAtLastRecord="no"  
+				childExpression = "Function:ListFirst(?,'~')" endExpression="Function:Left(?,2) IS 'N4' ">
+				
+				<match case="N2" name="N2 Address Line 2" segmentDel="~"/>
+				<match case="N3" name="N3 Address Line 3" segmentDel="~"/>
+				<match case="N4" name="N4 Address Line 4" segmentDel="~"/>
+			</header>
+		</match>	
+		<match case="N1"  name="Shipping Address Group" segmentDel="~">
+			<!-- this is an address so the remainder is nested within -->
+			<header name="ship to address group header" repeat="No"  IgnoreLastRecordData="no" restartAtLastRecord="no"  
+				childExpression = "Function:ListFirst(?,'~')" endExpression="Function:Left(?,2) IS 'N4' ">				
+				<match case="N2" name="N2 Address Line 2" segmentDel="~"/>
+				<match case="N3" name="N3 Address Line 3" segmentDel="~"/>
+				<match case="N4" name="N4 Address Line 4" segmentDel="~"/>
+			</header>
+		</match>		
+		<match case="PO1"  name="PO1 Group" segmentDel="~">
+			<header name="PO Line Group" repeat="No"  IgnoreLastRecordData="no" restartAtLastRecord="no"  
+				childExpression = "Function:ListFirst(?,'~')" endExpression="Function:ListFind('PO1,CTT',Left(?,3)) GT 0 ">				
+				<match case="PID" name="PID Line" segmentDel="~"/>
+			</header>				
+		</match>
+		<match case="CTT"  name="CTT Line" segmentDel="~"></match>
+	</header>	
+	<!-- end of document trailers -->
+	<header name="transaction set trailer" repeat="no"  IgnoreLastRecordData="no" restartAtLastRecord="no"  
+		childExpression = "Function:Left(?,2)" endExpression="Function:Left(?,1) NEQ ''">		
+		<match case="SE"  name="SE Line" segmentDel="~"/>		
+	</header>	
+	<header name="functional group trailer" repeat="no"  IgnoreLastRecordData="no" restartAtLastRecord="no"  
+		childExpression = "Function:Left(?,2)" endExpression="Function:Left(?,1) NEQ ''">		
+		<match case="GE"  name="GE Line" segmentDel="~"/>		
+	</header>	
+	<header name="interchange control trailer" repeat="no"  IgnoreLastRecordData="no" restartAtLastRecord="no"  
+		childExpression = "Function:Left(?,3)" endExpression="Function:Left(?,1) NEQ ''">		
+		<match case="IEA"  name="IEA Line" segmentDel="~"/>		
+	</header>				
+</boncodeFixedFileDefintion>

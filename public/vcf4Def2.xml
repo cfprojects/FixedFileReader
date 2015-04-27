@@ -1,0 +1,257 @@
+<!-- Definition for Visa Commercial Format 4  -->
+<!-- this is just a skeleton, details will need to be filled in with further information from Visa documentation --> 
+<!-- bsoylu 12/22/2009 -->
+<boncodeFixedFileDefintion EndOfLine="LF">
+	<!-- the repeat attribute tells to parser to go look for the next header segment once we found the end of the existing one -->
+	<header name="Root Header" repeat="Yes" IgnoreLastRecordData="yes" restartAtLastRecord="Yes"  
+		childExpression = "Function:Left(?,1)" endExpression="Function:Left(?,1) IS 9"> <!-- end of a segment (group of multiple records) can be denoted via count (e.g. count:13 or via a Function -->
+		<match case="6" name="vcf file header record"  ignore="yes" repeat="No" repeatUsingLastRecord="Yes"> 					
+		</match>
+		<!-- match elements for case can be any alpha numeric combo but cannot contain comma -->
+		<match case="8" query="vcfHeader" name="vcf segment header record" segmentDel="tab"> <!-- if you provide segmentDel attribute the count attribute for fields will be ignored, you can use tab,comma keywords -->
+			<!-- block header  -->
+			<field order="1" count="1" type="numeric" name="TransactionCode"/> <!-- order attribute is not used just assists in counting nodes -->
+			<field count="10" type="numeric" name="CompanyIdentification" />
+			<field count="5" type="numeric" name="SequenceNumber" />
+			<field count="8" type="date" format="MMDDYYYY" name="ProcessingDate" />
+			<field count="2" type="numeric" name="RecordTypeCode" validList="1,2,3,4,5,6,7,8,9,10,11,14,15,16,17,18,20,21,25,26,27,28,29,30,31,99" />
+			<field count="10" type="numeric" name="RecordCount" />
+			<field count="16" type="numeric" name="TotalAmount" format="Function:DIV100" />
+			<field count="10" type="text" name="LoadFileFormat" />
+			<field count="10" type="text" name="IssuerID" />
+			<field count="10" type="numeric" name="ProcessorID" />
+			<field count="1" type="numeric" name="VisaRegionID" />
+			<field count="10" type="text" name="ProcessorPlatformReference" />
+					
+			
+			<!-- 
+				* if you use endExpression="count:" then the following is also assumed: 
+				repeat=No
+				IgnoreLastRecordData=No
+				* you cannot nest other header tags (child tags) if you use a count directive in endExpression attribute. They will be ignored. 
+				* if the expression after count: is not numeric it is assumed to be a parent field, e.g. count:NumberOfRecords
+				then the NumberOfRecords field should be defined in the parent header node and be numeric as its content will determine
+				how many records we will assign to this header.
+				*a minimum count of one record is needed so using a count directive for zero lines is not supported if you 
+				 have no data that segment should not be in the file
+			-->
+			<header name="Sub Header Based on RecordType" repeat="No" childExpression = "ParentField:RecordTypeCode" 
+				restartAtLastRecord="No" endExpression="Function:Left(?,1) IS 9">
+				<match name="Type 01: Account Balance" case="1" segmentDel="tab" ignore="yes"></match>
+				
+				<match name="Type 02: Car Rental Summary" query="carRentalSummary" case="2" segmentDel="tab" >
+					<field order="1" name="LoadTransactionCode" type="numeric" />
+					<field order="2" name="AccountNumber" type="text" />
+					<field order="3" name="PostingDate" type="date" format="MMDDYYYY" />
+					<field order="4" name="TransactionReferenceNumber" type="text" />
+					<field order="5" name="SequenceNumber" type="nuumeric" />
+					<field order="6" name="NoShowIndicator" type="text" />
+					<field order="7" name="DailyRentalRate" type="numeric" format="Function:DIV100" />
+					<field order="8" name="OtherChanges" type="numeric" format="Function:DIV100" />
+					<field order="9" name="CheckOutDate" type="date" format="MMDDYYYY" />
+					<field order="10" name="WeeklyRentalRate" type="numeric" format="Function:DIV100" />
+					<field order="11" name="InsuranceCharges" type="numeric" format="Funtion:DIV100" />
+					<field order="12" name="FuelCharges" type="numeric" format="Function:DIV100" />
+					<field order="13" name="ClassCode" type="text" />
+					<field order="14" name="OneWayCharges" type="numeric" format="Function:DIV100" />
+					<field order="15" name="RenterName" type="text" />
+					<field order="16" name="AutoTowing" type="numeric" format="Function:DIV100" />
+					<field order="17" name="RegularMileageCharges" type="numeric" format="Function:DIV100" />
+					<field order="18" name="ExtraMileageCharges" type="numeric" format="Function:DIV100" />
+					<field order="19" name="LateReturnCharges" type="numeric" format="Function:DIV100" />
+					<field order="20" name="ReturnLocation" type="text" />
+					<field order="21" name="TotalTax" type="numeric" format="Function:DIV100" />
+					<field order="22" name="TelephoneCharges" type="numeric" format="Function:DIV100" />
+					<field order="23" name="CorporateIdentification" type="text" />
+					<field order="24" name="ExraChargeCode" type="text" />
+					<field order="25" name="DaysRented" type="numeric" />
+					<field order="26" name="MessageIdentifier" type="text" />
+					<field order="27" name="PurchaseID" type="text" />
+					<field order="28" name="SourceAmount" type="numeric" format="Function:DIV100" />
+					<field order="29" name="TransactionDate" type="date" format="MMDDYYYY" />
+					<field order="30" name="MCCCode" type="text" />
+					<field order="31" name="SupplierName" type="text" />					
+				</match>			
+				
+				<match name="Type 03: Card Account" case="3" segmentDel="tab" query="selCardAccount" ignore="No"></match>	
+				<match name="Type 04: Card Holder" case="4" segmentDel="tab" ignore="yes"></match>	
+				
+				<match name="Type 05: Card Transaction" case="5" segmentDel="tab" query="cardTransactions" ignore="yes">
+					<field order="1" name="LoadTransactionCode" type="numeric" />
+					<field order="2" name="AccountNumber" type="text" />
+					<field order="3" name="PostingDate" type="date" format="MMDDYYYY" />
+					<field order="4" name="TransactionReferenceNumber" type="text" />
+					<field order="5" name="SequenceNumber" type="nuumeric" />
+					<field order="6" name="Period" type="text" />
+					<field order="7" name="AcquiringBIN" type="numeric" />
+					<field order="8" name="CardAcceptorID" type="text" />
+					<field order="9" name="SupplierName" type="text" />
+					<field order="10" name="SupplierCity" type="text" />
+					<field order="11" name="SupplierState" type="text" />
+					<field order="12" name="SupplierCountry" type="text" />
+					<field order="13" name="SupplierPostalCode" type="text" />
+					<field order="14" name="SourceAmount" type="numeric" format="Function:DIV100" />
+					<field order="15" name="BillingAmount" type="numeric" format="Function:DIV100" />
+					<field order="16" name="SourceCurrencyCode" type="text" />
+					<field order="17" name="MCCCode" type="text" />					
+				</match>		
+				
+				<match name="Type 07: Line Item Detail" case="7" segmentDel="tab" query="lineDetails" ignore="yes">
+					<field order="1" name="LoadTransactionCode" type="numeric" />
+					<field order="2" name="AccountNumber" type="text" />
+					<field order="3" name="PostingDate" type="date" format="MMDDYYYY" />
+					<field order="4" name="TransactionReferenceNumber" type="text" />
+					<field order="5" name="SequenceNumber" type="nuumeric" />
+					<field order="6" name="ItemSequenceNumber" type="numeric" />
+					<field order="7" name="MessageIdentifier" type="text" />
+					<field order="8" name="ItemCommodityCode" type="text" />
+					<field order="9" name="ItemDescription" type="text" />
+					<field order="10" name="Quantity" type="numeric" />
+					<field order="11" name="UnitCost" type="numeric" format="Function:DIV100" />
+					<field order="12" name="UnitMeasure" type="text" />
+					<field order="13" name="Tax" type="numeric" format="Function:DIV100" />
+					<field order="14" name="SupplyType" type="text" />
+					<field order="15" name="LastItemIndicator" type="numeric" />
+					<field order="16" name="TaxRate" type="numeric" format="Function:DIV100" />
+					<field order="17" name="Discount" type="numeric" format="Function:DIV100" />
+					<field order="18" name="ItemTotal" type="numeric" format="Function:DIV100" />
+					<field order="19" name="ItemCode" type="text" />
+					<field order="20" name="ServiceIdentifier" type="text" />
+					<field order="21" name="PurchaseID" type="text" />
+					<field order="22" name="SourceAmount" type="numeric" format="Function:DIV100" />
+					<field order="23" name="TransactionDate" type="date" format="MMDDYYYY" />
+					<field order="24" name="MCCCode" type="text" />
+					<field order="25" name="SupplierName" type="text" />
+					<field order="26" name="SupplierPostalCode" type="text" />
+					<field order="27" name="ProcessorAddendumKey" type="text" />
+				</match>	
+				
+				<match name="Type 09: Lodging Summary" case="9" segmentDel="tab" query="lodingSummary" ignore="yes">
+					<field order="1" name="LoadTransactionCode" type="numeric" />
+					<field order="2" name="AccountNumber" type="text" />
+					<field order="3" name="PostingDate" type="date" format="MMDDYYYY" />
+					<field order="4" name="TransactionReferenceNumber" type="text" />
+					<field order="5" name="SequenceNumber" type="nuumeric" />
+					<field order="6" name="NoShowIndicator" />
+					<field order="7" name="CheckInDate" type="date" format="MMDDYYYY" />
+					<field order="8" name="DailyRoomRate" type="numeric" format="Function:DIV100" />
+					<field order="9" name="TotalOtherCharges" type="numeric" format="Function:DIV100" />
+					<field order="10" name="TotalTaxAmount" type="numeric" format="Function:DIV100" />
+					<field order="11" name="TotalFoodCharges" type="numeric" format="Function:DIV100" />
+					<field order="12" name="TotalPrepaidCharges" type="numeric" format="Function:DIV100" />
+					<field order="13" name="TotalFolioCashAdvances" type="numeric" format="Function:DIV100" />
+					<field order="14" name="TotalParkingCharges" type="numeric" format="Function:DIV100" />
+					<field order="15" name="TotalMiniBarCharges" type="numeric" format="Function:DIV100" />
+					<field order="16" name="TotalLaundryCharges" type="numeric" format="Function:DIV100" />
+					<field order="17" name="TotalTelephoneCharges" type="numeric" format="Function:DIV100" />
+					<field order="18" name="TotalGiftCharges" type="numeric" format="Function:DIV100" />
+					<field order="19" name="TotalMovieCharges" type="numeric" format="Function:DIV100" />
+					<field order="20" name="TotalBusinessCenterChanges" type="numeric" format="Function:DIV100" />
+					<field order="21" name="HealthClubCharges" type="numeric" format="Function:DIV100" />
+					<field order="22" name="ExtraChargeCode" />
+					<field order="23" name="TotalRoomTaxAmount" type="numeric" format="Function:DIV100" />
+					<field order="24" name="Nights" type="numeric" />
+					<field order="25" name="TotalNonRoomCharges" type="numeric" format="Function:DIV100" />
+					<field order="26" name="MessageIdentifier" />
+					<field order="27" name="PurcahseID" />
+					<field order="28" name="SourceAmount" type="numeric" format="Function:DIV100" />
+					<field order="29" name="TransactionDate" type="date" />
+					<field order="30" name="MCCCode" />
+					<field order="31" name="SupplierName" />
+					<field order="32" name="SupplierPostalCode" />
+					<field order="33" name="ProcessorAddendumKey" />
+				</match>	
+				
+				<match name="Type 10: Organization" case="10" segmentDel="tab" ignore="yes"></match>	
+				<match name="Type 11: Period" case="11" segmentDel="tab" ignore="yes"></match>	
+				
+				<match name="Type 14: Passenger Itinerary" case="14" segmentDel="tab" query="passengerItinerary" ignore="yes">
+					<field order="1" name="LoadTransactionCode" type="numeric" />
+					<field order="2" name="AccountNumber" type="text" />
+					<field order="3" name="PostingDate" type="date" format="MMDDYYYY" />
+					<field order="4" name="TransactionReferenceNumber" type="text" />
+					<field order="5" name="SequenceNumber" type="nuumeric" />
+					<field order="6" name="DepartureDate" type="Date" />
+					<field order="7" name="TravelAgencyCode" />
+					<field order="8" name="TravelAgencyName" />
+					<field order="9" name="TicketIndicator" />
+					<field order="10" name="TicketNumber" />
+					<field order="11" name="PassengerName" />
+					<field order="12" name="ExchangeTicketNumber" />
+					<field order="13" name="ExchangeTicketAmount" type="numeric" format="Function:DIV100" />
+					<field order="14" name="InternetIndicator" />
+					<field order="15" name="TotalFareAmount" type="numeric" format="Function:DIV100" />
+					<field order="16" name="TotalFeeAmount" type="numeric" format="Function:DIV100" />
+					<field order="17" name="TotalTaxAmount" type="numeric" format="Function:DIV100" />
+					<field order="18" name="MessageIdentifier" />
+					<field order="19" name="Endorsement" />
+					<field order="20" name="PurchaseID" />
+					<field order="21" name="SourceAmount" type="numeric" format="Function:DIV100" />
+					<field order="22" name="TransactionDate" type="date" />
+					<field order="23" name="MCCCode" />
+					<field order="24" name="SupplierName" />
+					<field order="25" name="SupplierPostalCode" />
+					<field order="26" name="ProcessorAddendumKey" />
+					<field order="27" name="PassengerSpeficiData" />
+					<field order="28" name="TicketIssueDate" />
+					<field order="29" name="NumberOfLegs" />
+				</match>	
+				
+				<match name="Type 15: Leg Specific Information" case="15" segmentDel="tab" query="legsInformation" ignore="yes"></match>	
+				
+				<match name="Type 16: Supplier" case="16" segmentDel="tab" ignore="yes"></match>	
+				<match name="Type 17: Fleet Service" case="17" segmentDel="tab" ignore="yes"></match>	
+				<match name="Type 18: Fleet Product" case="18" segmentDel="tab" ignore="yes"></match>
+				
+				<match name="Type 20: Temporary Service" case="20" segmentDel="tab" query="tempServices" ignore="yes"> 
+					<field order="1" name="LoadTransactionCode" type="numeric"/>
+					<field order="2" name="AccountNumber" type="text"/>
+					<field order="3" name="PostingDate" type="date" format="MMDDYYYY"/>
+					<field order="4" name="TransactionReferenceNumber" type="text"/>
+					<field order="5" name="SequenceNumber" type="numeric"/>
+					<field order="6" name="ItemSequenceNumber" type="numeric" />
+					<field order="7" name="MessageIdentifier" />
+					<field order="8" name="StartDate" type="Date" />
+					<field order="9" name="EndDate" type="Date" />
+					<field order="10" name="AccountCode" />
+					<field order="11" name="Description" />
+					<field order="12" name="EmployeeName" />
+					<field order="13" name="EmployeeSSN" />
+					<field order="14" name="RateIndicator" />
+					<field order="15" name="Rate" type="numeric" format="Function:DIV100" />
+					<field order="16" name="RegularHoursWorked" type="numeric" format="Function:DIV100" />
+					<field order="17" name="OvertimeRate" type="numeric" format="Function:DIV100" />
+					<field order="18" name="OverTimeHoursWorked" type="numeric" format="Function:DIV100" />
+					<field order="19" name="JobCode" />
+					<field order="20" name="MiscExpenseAmount" type="numeric" format="Function:DIV100" />
+					<field order="21" name="MiscExpenseIndicator" />
+					<field order="22" name="RequesterID" />
+					<field order="23" name="SubtotalAmount" type="numeric" format="Function:DIV100" />
+					<field order="24" name="SalesTaxAmount" type="numeric" format="Function:DIV100" />
+					<field order="25" name="DiscountAmt" type="numeric" format="Function:DIV100" />
+					<field order="26" name="Supervisor" />
+					<field order="28" name="TimesheetNumber" />
+					<field order="29" name="ReimbursementAttribute" />
+				</match>	
+				
+				<match name="Type 21: Shipping Service" case="21" segmentDel="tab" ignore="yes"></match>	
+				<match name="Type 25: Headquarter Relationship" case="25" segmentDel="tab" ignore="yes"></match>	
+				
+				<match name="Type 26: Lodging Detail" case="26" segmentDel="tab" ignore="yes"></match>	
+				
+				<match name="Type 27: Car Rental Detail" case="27" segmentDel="tab" ignore="yes"></match>	
+				<match name="Type 28: Allocation" case="28" segmentDel="tab" ignore="yes"></match>	
+				<match name="Type 29: Allocation Description" case="29" segmentDel="tab" ignore="yes"></match>	
+				<match name="Type 30: Relationship" case="30" segmentDel="tab" ignore="yes"></match>
+				
+				<match name="Type 31: Phone" case="31" segmentDel="tab" query="phone"></match>	
+				
+				<match name="Type 99: Reference Data" case="99" segmentDel="tab" ignore="yes"></match>													
+			</header>
+		</match>		
+	</header>		
+		
+</boncodeFixedFileDefintion>
+	
+
+

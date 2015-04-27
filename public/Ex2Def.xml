@@ -1,0 +1,35 @@
+<!-- Defition for Reading Example file 2 -->
+<boncodeFixedFileDefintion EndOfLine="LF">
+	<!-- the repeat attribute tells to parser to go look for the next header segment once we found the end of the existing one -->
+	<header name="Parent Header" repeat="Yes" IgnoreLastRecordData="no" restartAtLastRecord="Yes"  
+		childExpression = "Function:Left(?,1)" endExpression="Function:Left(?,1) IS 'P'"> <!-- end of a segment (group of multiple records) can be denoted via count (e.g. count:13 or via a Function -->
+		<!-- match elements for case can be any alpha numeric combo but cannot contain comma -->
+		<match case="P"  name="Parent Match"> <!-- if you provide segmentDel attribute the count attribute for fields will be ignored, you can use tab,comma keywords -->
+			<field name="RecordType" count="2" />
+			<field name="Father_FirstName" count="10"/>
+			<field name="Father_LastName" count="9"/>
+			<field name="Mother_FirstName" count="10"/>
+			<field name="Mother_LastName" count="10"/>
+			<field name="ChildCount" type="numeric" count="2"/>
+			
+			<!--- check for children -->
+			<header name="Child Header" IgnoreLastRecordData="no" restartAtLastRecord="Yes"
+			  childExpression = "Function:Left(?,1)" endExpression="Count:ChildCount"> 
+			  	<!-- find daugthers -->
+				<match case="D" query="selDaughters" name="Daughter Match"> 
+			  		<field name="ChildType" count="4"/>
+					<field name="Daughter_FirstName" count="15"/>
+					<field name="Daughter_LastName" count="10"/>
+					<field name="Daughter_FavoriteDoll" count="10"/>
+			  	</match>
+				<!-- find sons -->
+				<match case="S"  name="Son Match"> 
+			  		<field name="ChildType" count="4"/>
+					<field name="Son_FirstName" count="15"/>
+					<field name="Son_LastName" count="10"/>
+					<field name="Son_FavoriteActionFigure" count="10"/>
+			  	</match>				
+			</header>
+		</match>
+	</header>
+</boncodeFixedFileDefintion>

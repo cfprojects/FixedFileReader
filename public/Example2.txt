@@ -1,0 +1,7 @@
+P JOHN      DOE      CARLA     DOE       02
+D   SAMAMTHA       DOE       BARBIE    
+S   GEOERGE        DOE       G.I. JOE
+P PETER     MAYE     PATRICIA  MAYE      01
+S   STUART         MAYE      BATMAN
+P ALLEN     GONZALES MARIA     VALENCIA  01
+D   GONZUELA       GONZALES  BARBIE
